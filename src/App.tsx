@@ -1,20 +1,19 @@
-import { Button } from "@/components/ui/button"
+import { Route, Routes } from "react-router-dom"
+import BookList from "./pages/BookList"
+import StudentList from "./pages/StudentList"
+import Error404 from "./pages/Error404"
+import Home from "./pages/Home"
+import BookAddForm from "./pages/BookAddForm"
 
-export function App() {
+function App() {
   return (
-    <div className="flex min-h-svh p-6">
-      <div className="flex max-w-md min-w-0 flex-col gap-4 text-sm leading-loose">
-        <div>
-          <h1 className="font-medium">Project ready!</h1>
-          <p>You may now add components and start building.</p>
-          <p>We&apos;ve already added the button component for you.</p>
-          <Button className="mt-2">Button</Button>
-        </div>
-        <div className="font-mono text-xs text-muted-foreground">
-          (Press <kbd>d</kbd> to toggle dark mode)
-        </div>
-      </div>
-    </div>
+    <Routes>
+      <Route path="/" element={<Home />}></Route>
+      <Route path="/students" element={<StudentList />}></Route>
+      <Route path="/books" element={<BookList />}></Route>
+      <Route path="/addNewBook" element={<BookAddForm />}></Route>
+      <Route path="/*" element={<Error404 />}></Route>
+    </Routes>
   )
 }
 
