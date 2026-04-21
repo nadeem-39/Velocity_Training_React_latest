@@ -1,6 +1,7 @@
-import { useState, type ReactElement } from "react"
+import { useEffect, useState, type ReactElement } from "react"
 import * as SutdentData from "../data/studentsList.json"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useLocalStorage } from "usehooks-ts"
 
 import {
   Table,
@@ -12,8 +13,22 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+
 import { Button } from "@/components/ui/button"
-import DialogComponent from "@/components/localComponents/dialog"
+import DialogComponent from "@/components/localComponents/StudentEditDialog"
+import { Input } from "@/components/ui/input"
+import { string } from "zod"
 
 type StudentDataTemplate = {
   id: number
@@ -26,12 +41,35 @@ const StudentList = (): ReactElement => {
   let [studentForEdit, setStudentForEdit] =
     useState<StudentDataTemplate | null>(null)
   let [open, setOpen] = useState<boolean>(false)
+  let [searchValue, setSearchValue] = useState<String>("")
+  let [currStudentData, setCurrStudentData] = useState<StudentDataTemplate[]>()
+  let [searachStudent, setSearchStudent] = useState<
+    StudentDataTemplate[] | null
+  >()
+  let [
+    searchValueInLocalStorage,
+    setSearchValueInLocalStorage,
+    removeSearchValueInLocalStorage,
+  ] = useLocalStorage("lastSearch", "")
 
   let processedData = JSON.stringify(SutdentData)
   let allData = JSON.parse(processedData)
   let finalData: StudentDataTemplate[] = allData.data
 
   let first50StudentData = finalData.slice(0, 50)
+
+  // updating student data array which is rendering in table,
+  // and updatig search value inside the box via searchValue hook.
+  useEffect(() => {
+    setCurrStudentData(first50StudentData)
+    setSearchValue(searchValueInLocalStorage)
+  }, [])
+
+  function deleteStudent(student: StudentDataTemplate): void {
+    setCurrStudentData(
+      currStudentData?.filter((s) => (s.id === student.id ? false : true))
+    )
+  }
 
   let [studentVisible, setStudentVisible] =
     useState<StudentDataTemplate | null>(null)
@@ -40,6 +78,26 @@ const StudentList = (): ReactElement => {
     setStudentVisible({ id, title, age })
     console.log(studentVisible)
   }
+
+  // searach student function
+
+  function searchStudent(studentName: String): void {
+    setSearchStudent(
+      currStudentData?.filter(
+        (s) => s.title.toLowerCase() === studentName.toLowerCase()
+      )
+    )
+  }
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      searchStudent(searchValue)
+      setSearchValueInLocalStorage(() => searchValue + "")
+      console.log(searchValue)
+    }, 300)
+
+    return () => clearTimeout(timeout)
+  }, [searchValue])
 
   //   console.log(first50SutdentData);
 
@@ -91,6 +149,25 @@ const StudentList = (): ReactElement => {
         <Card className="p-4">
           <CardHeader className="items-center text-center">
             <CardTitle className="text-4xl font-bold">Students List</CardTitle>
+            <CardContent>
+              <Input
+                className="w-3/12"
+                placeholder="Enter Student Name"
+                onChange={(e) => {
+                  setSearchValue(e.target.value)
+                }}
+                value={searchValue + ""}
+              ></Input>
+            </CardContent>
+            {searachStudent?.map((e, idx) => {
+              return (
+                <CardContent key={idx}>
+                  name: {e.title} &nbsp; &nbsp; id: {e.id} &nbsp; &nbsp; age:{" "}
+                  {e.age}
+                </CardContent>
+              )
+            })}
+
             <Button
               className="border-1-black m-auto w-25 bg-blue-500 text-white"
               onClick={() => {
@@ -106,17 +183,20 @@ const StudentList = (): ReactElement => {
                 <TableCaption>A list of 50 Students.</TableCaption>
                 <TableHeader>
                   <TableRow className="bg-gray-400">
-                    <TableHead className="w-70 text-center">
+                    <TableHead className="w-50 text-center">
                       Student ID
                     </TableHead>
-                    <TableHead className="w-70 text-center">
+                    <TableHead className="w-50 text-center">
                       Student Name
                     </TableHead>
-                    <TableHead className="w-70 text-center">
+                    <TableHead className="w-50 text-center">
                       Student Age
                     </TableHead>
-                    <TableHead className="w-70 text-center">
+                    <TableHead className="w-50 text-center">
                       Edit Button
+                    </TableHead>
+                    <TableHead className="w-50 text-center">
+                      Delete Button
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -159,6 +239,36 @@ const StudentList = (): ReactElement => {
                         >
                           Edit
                         </Button>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <AlertDialog>
+                          <AlertDialogTrigger>
+                            <Button
+                              key={student.id}
+                              className="bg-red-800 text-white"
+                              onClick={() => {}}
+                            >
+                              Delete
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                Are you sure you want to delete {student.title}
+                              </AlertDialogTitle>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => {
+                                  deleteStudent(student)
+                                }}
+                              >
+                                Continue
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </TableCell>
                     </TableRow>
                   ))}

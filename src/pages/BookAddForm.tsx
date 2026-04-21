@@ -52,8 +52,9 @@ const BookAddForm = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isValid },
     setError,
+    reset,
   } = useForm<formSchema>({
     // defaultValues: {
     //   bookId: 0,
@@ -132,9 +133,17 @@ const BookAddForm = () => {
               </FieldGroup>
             </FieldGroup>
             <Button
+              className="border-1-black mt-5 mr-10 w-25 bg-blue-500 text-white"
+              onClick={() => {
+                reset()
+              }}
+            >
+              Reset
+            </Button>
+            <Button
               className="border-1-black mt-5 w-25 bg-blue-500 text-white"
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !isValid}
             >
               {" "}
               {isSubmitting ? "Loading" : "Submit"}{" "}
